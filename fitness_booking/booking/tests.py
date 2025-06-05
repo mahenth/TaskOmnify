@@ -37,22 +37,23 @@ class BookingAPITestCase(APITestCase):
 
     def test_overbooking(self):
         # Book twice (slots = 2)
-        for _ in range(2):
+        for i in range(2):
             self.client.post(self.booking_url, {
                 "fitness_class": self.fitness_class.id,
-                "client_name": "Client",
-                "client_email": f"client{_}@test.com"
+                "client_name": f"Client {i}",
+                "client_email": f"client{i}@test.com"
             }, format='json')
 
         # Third booking should fail
         response = self.client.post(self.booking_url, {
             "fitness_class": self.fitness_class.id,
-            "client_name": "Client",
+            "client_name": "Client 3",
             "client_email": "client3@test.com"
         }, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("No available slots", str(response.data))
+        self.assertIn("No slots available.", response.data.get('non_field_errors')[0])
+
 
     def test_get_bookings_by_email(self):
         Booking.objects.create(
